@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klarity — Nordic Minimalist Todo List</title>
+  <meta name="description" content="A calm, high-polish Nordic Minimalist Todo application crafted with HTML5, Tailwind CSS, and Vanilla JavaScript.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            nordic: {
+              bg: '#F8FAFC',
+              card: '#FFFFFF',
+              slate: '#0F172A',
+              muted: '#64748B',
+              border: '#E2E8F0',
+              sage: '#84A98C',
+              lavender: '#B8C0EC',
+              sand: '#F4A261',
+              rose: '#E63946'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="src/css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen relative overflow-x-hidden selection:bg-slate-200">
+
+  <!-- Soft Ambient Background Aesthetics -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-b from-indigo-50/50 via-slate-50/30 to-transparent blur-3xl pointer-events-none -z-10"></div>
+  <div class="fixed bottom-0 right-0 w-[400px] h-[400px] bg-emerald-50/30 blur-3xl pointer-events-none -z-10"></div>
+
+  <!-- Main Container -->
+  <main class="max-w-2xl mx-auto px-4 py-8 sm:py-12">
+
+    <!-- Header Section -->
+    <header class="mb-8">
+      <div class="flex items-center justify-between gap-4 mb-3">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs uppercase tracking-widest font-bold text-slate-400">Nordic Workspace</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Klarity</h1>
+        </div>
+
+        <!-- Controls: Sound Toggle & Quick Date -->
+        <div class="flex items-center gap-3">
+          <button 
+            id="sound-toggle" 
+            aria-label="Toggle sound effects"
+            class="px-3 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-slate-100/80 backdrop-blur-md transition-all duration-200 active:scale-95 flex items-center gap-2 shadow-sm">
+            <i data-lucide="volume-2" class="w-4 h-4 text-emerald-600"></i>
+            <span class="text-xs text-slate-600 font-medium">Sound On</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Stats Summary Card -->
+      <div class="nordic-card p-4 rounded-2xl mb-6">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-700 mb-2">
+          <span id="stats-text" class="flex items-center gap-1.5">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+            Loading progress...
+          </span>
+          <span id="stats-percent" class="text-slate-900 font-bold">0%</span>
+        </div>
+        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-full bg-slate-900 transition-all duration-500 rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Task Creation Form Card -->
+    <section class="mb-8" aria-label="Add new task">
+      <form id="add-task-form" class="nordic-card p-4 sm:p-5 rounded-2xl flex flex-col gap-3">
+        <div class="relative flex items-center">
+          <input 
+            type="text" 
+            id="task-title-input" 
+            placeholder="What needs to be done?" 
+            required 
+            aria-label="Task title"
+            class="w-full bg-transparent border-0 border-b border-slate-200 focus:border-slate-800 text-sm font-medium placeholder-slate-400 py-2.5 px-1 focus:outline-none transition-colors">
+        </div>
+
+        <!-- Metadata Inputs (Category, Priority, Date, Submit Button) -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div class="flex flex-wrap items-center gap-2">
+            
+            <!-- Category Select -->
+            <div class="relative inline-block">
+              <select 
+                id="task-category-select" 
+                aria-label="Select category"
+                class="appearance-none bg-slate-100/80 hover:bg-slate-200/60 border border-slate-200/80 text-xs font-medium text-slate-700 py-1.5 pl-3 pr-7 rounded-xl focus:outline-none cursor-pointer transition-colors">
+                <option value="Work">Work</option>
+                <option value="Personal" selected>Personal</option>
+                <option value="Health">Health</option>
+                <option value="Finance">Finance</option>
+                <option value="Ideas">Ideas</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+
+            <!-- Priority Select -->
+            <div class="relative inline-block">
+              <select 
+                id="task-priority-select" 
+                aria-label="Select priority"
+                class="appearance-none bg-slate-100/80 hover:bg-slate-200/60 border border-slate-200/80 text-xs font-medium text-slate-700 py-1.5 pl-3 pr-7 rounded-xl focus:outline-none cursor-pointer transition-colors">
+                <option value="Low">Low Priority</option>
+                <option value="Medium" selected>Medium Priority</option>
+                <option value="High">High Priority</option>
+              </select>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+
+            <!-- Due Date Input -->
+            <input 
+              type="date" 
+              id="task-date-input" 
+              aria-label="Due date"
+              class="bg-slate-100/80 hover:bg-slate-200/60 border border-slate-200/80 text-xs font-medium text-slate-700 py-1.5 px-3 rounded-xl focus:outline-none cursor-pointer transition-colors">
+          </div>
+
+          <!-- Add Button -->
+          <button 
+            type="submit" 
+            aria-label="Add task"
+            class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Task</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Controls Bar: Filters & Search -->
+    <section class="mb-6 space-y-4" aria-label="Task controls and filters">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        
+        <!-- Status Filter Tabs -->
+        <div class="inline-flex p-1 bg-slate-200/60 backdrop-blur-md rounded-2xl border border-slate-200/80">
+          <button 
+            data-filter="All" 
+            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-white transition-all duration-200 active:scale-95">
+            All
+          </button>
+          <button 
+            data-filter="Active" 
+            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/80 text-slate-600 transition-all duration-200 active:scale-95">
+            Active
+          </button>
+          <button 
+            data-filter="Completed" 
+            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white/80 text-slate-600 transition-all duration-200 active:scale-95">
+            Completed
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative flex-1 max-w-xs">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search tasks..." 
+            aria-label="Search tasks"
+            class="w-full bg-white/80 border border-slate-200/80 rounded-2xl py-1.5 pl-9 pr-8 text-xs font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/50 transition-all">
+          <button 
+            id="clear-search" 
+            aria-label="Clear search"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div id="category-pills" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <!-- Category buttons dynamically rendered here -->
+      </div>
+    </section>
+
+    <!-- Task List Container -->
+    <section class="space-y-3" aria-label="Task list">
+      <div id="task-list" class="space-y-3">
+        <!-- Rendered by ui.js -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-16 text-center text-xs text-slate-400">
+      <p>Klarity — Nordic Minimalist Todo Space</p>
+    </footer>
+
+  </main>
+
+  <!-- Edit Task Modal -->
+  <div id="edit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="nordic-card bg-white w-full max-w-md p-6 rounded-2xl shadow-xl animate-fade-in border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-bold text-slate-900">Edit Task</h2>
+        <button id="cancel-edit-btn" aria-label="Close modal" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="edit-task-form" class="space-y-4">
+        <div>
+          <label for="edit-title-input" class="block text-xs font-semibold text-slate-700 mb-1">Task Title</label>
+          <input 
+            type="text" 
+            id="edit-title-input" 
+            required
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="edit-category-select" class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+            <select 
+              id="edit-category-select"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-medium text-slate-800 focus:outline-none">
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Health">Health</option>
+              <option value="Finance">Finance</option>
+              <option value="Ideas">Ideas</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="edit-priority-select" class="block text-xs font-semibold text-slate-700 mb-1">Priority</label>
+            <select 
+              id="edit-priority-select"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-medium text-slate-800 focus:outline-none">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="edit-date-input" class="block text-xs font-semibold text-slate-700 mb-1">Due Date</label>
+          <input 
+            type="date" 
+            id="edit-date-input"
+            class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs font-medium text-slate-800 focus:outline-none">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button 
+            type="button" 
+            onclick="document.getElementById('edit-modal').classList.add('hidden')"
+            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-colors">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-auto"></div>
+
+  <!-- Application Script -->
+  <script type="module" src="src/js/app.js"></script>
+
+</body>
+</html>
